@@ -1,0 +1,28 @@
+.{
+    .name = .gator,
+    .version = "0.1.0",
+
+    .fingerprint = 0x613c6bd2aecf7d37, // Changing this has security and trust implications.
+
+    .minimum_zig_version = "0.14.1",
+
+    .dependencies = .{
+        .later = .{
+            .url = "https://github.com/theodore-s-beers/later/archive/refs/tags/v0.1.1.tar.gz",
+            .hash = "later-0.1.1-PrUAas-pEQCSGxkbFueIdHOHZR2N_t9W3yekjo8-RAjI",
+        },
+        .zbench = .{
+            .url = "https://github.com/hendriknielaender/zBench/archive/refs/tags/v0.10.1.tar.gz",
+            .hash = "zbench-0.10.0-YTdc714iAQDO4lTHMnIljYHPZ5v_sNTsw75vAmO1pyT-",
+        },
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        // For example...
+        //"LICENSE",
+        //"README.md",
+    },
+}
