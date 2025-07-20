@@ -2,6 +2,8 @@ const std = @import("std");
 const later = @import("later");
 const zbench = @import("zbench");
 
+pub const panic = std.debug.no_panic; // Don't unwind; faster
+
 const BenchmarkState = struct {
     alloc: std.mem.Allocator,
     coll: later.Collator,
@@ -19,18 +21,18 @@ pub fn main() !void {
     // Conformance tests
     //
 
-    var coll = later.Collator.init(alloc, .ducet, false, false) catch unreachable;
+    var coll = later.Collator.init(alloc, .ducet, false, false);
     defer coll.deinit();
 
     conformance(alloc, "test-data/CollationTest_NON_IGNORABLE_SHORT.txt", &coll);
 
-    coll = later.Collator.init(alloc, .ducet, true, false) catch unreachable;
+    coll = later.Collator.init(alloc, .ducet, true, false);
     conformance(alloc, "test-data/CollationTest_SHIFTED_SHORT.txt", &coll);
 
-    coll = later.Collator.init(alloc, .cldr, false, false) catch unreachable;
+    coll = later.Collator.init(alloc, .cldr, false, false);
     conformance(alloc, "test-data/CollationTest_CLDR_NON_IGNORABLE_SHORT.txt", &coll);
 
-    coll = later.Collator.init(alloc, .cldr, true, false) catch unreachable;
+    coll = later.Collator.init(alloc, .cldr, true, false);
     conformance(alloc, "test-data/CollationTest_CLDR_SHIFTED_SHORT.txt", &coll);
 
     //
@@ -40,11 +42,11 @@ pub fn main() !void {
     var bench = zbench.Benchmark.init(alloc, .{});
     defer bench.deinit();
 
-    try bench.add("Mars text sorting", benchmarkMarsSorting, .{
+    try bench.add("Mars text sorting", benchMarsSorting, .{
         .hooks = .{
-            .before_all = setupBenchmarkState,
+            .before_all = setupBenchState,
             .before_each = resetListOrder,
-            .after_all = cleanupBenchmarkState,
+            .after_all = cleanupBenchState,
         },
     });
 
@@ -122,27 +124,28 @@ fn utf8Encode(c: u21, out: []u8) u3 {
     return length;
 }
 
-fn benchmarkMarsSorting(allocator: std.mem.Allocator) void {
-    _ = allocator;
+fn benchMarsSorting(alloc: std.mem.Allocator) void {
+    _ = alloc;
 
     if (bench_state) |state| {
         std.mem.sortUnstable([]const u8, state.list.items, &state.coll, later.collateComparator);
     }
 }
 
-fn setupBenchmarkState() void {
+fn setupBenchState() void {
     const alloc = std.heap.smp_allocator;
 
     bench_state = alloc.create(BenchmarkState) catch unreachable;
     bench_state.?.alloc = alloc;
 
-    bench_state.?.text = std.fs.cwd().readFileAlloc(alloc, "test-data/mars-de.txt", 128 * 1024) catch unreachable;
+    bench_state.?.text =
+        std.fs.cwd().readFileAlloc(alloc, "test-data/mars-de.txt", 128 * 1024) catch unreachable;
     bench_state.?.list = std.ArrayList([]const u8).init(alloc);
 
     var it = std.mem.tokenizeAny(u8, bench_state.?.text, " \t\n\r");
     while (it.next()) |token| bench_state.?.list.append(token) catch unreachable;
 
-    bench_state.?.coll = later.Collator.init(alloc, .cldr, false, false) catch unreachable;
+    bench_state.?.coll = later.Collator.init(alloc, .cldr, false, false);
     bench_state.?.list_orig = alloc.dupe([]const u8, bench_state.?.list.items) catch unreachable;
 }
 
@@ -150,7 +153,7 @@ fn resetListOrder() void {
     if (bench_state) |state| @memcpy(state.list.items, state.list_orig);
 }
 
-fn cleanupBenchmarkState() void {
+fn cleanupBenchState() void {
     if (bench_state) |state| {
         state.alloc.free(state.text);
         state.alloc.free(state.list_orig);
