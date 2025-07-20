@@ -21,18 +21,18 @@ pub fn main() !void {
     // Conformance tests
     //
 
-    var coll = later.Collator.init(alloc, .ducet, false, false);
+    var coll = try later.Collator.init(alloc, .ducet, false, false);
     defer coll.deinit();
 
     conformance(alloc, "test-data/CollationTest_NON_IGNORABLE_SHORT.txt", &coll);
 
-    coll = later.Collator.init(alloc, .ducet, true, false);
+    coll = try later.Collator.init(alloc, .ducet, true, false);
     conformance(alloc, "test-data/CollationTest_SHIFTED_SHORT.txt", &coll);
 
-    coll = later.Collator.init(alloc, .cldr, false, false);
+    coll = try later.Collator.init(alloc, .cldr, false, false);
     conformance(alloc, "test-data/CollationTest_CLDR_NON_IGNORABLE_SHORT.txt", &coll);
 
-    coll = later.Collator.init(alloc, .cldr, true, false);
+    coll = try later.Collator.init(alloc, .cldr, true, false);
     conformance(alloc, "test-data/CollationTest_CLDR_SHIFTED_SHORT.txt", &coll);
 
     //
@@ -145,7 +145,7 @@ fn setupBenchState() void {
     var it = std.mem.tokenizeAny(u8, bench_state.?.text, " \t\n\r");
     while (it.next()) |token| bench_state.?.list.append(token) catch unreachable;
 
-    bench_state.?.coll = later.Collator.init(alloc, .cldr, false, false);
+    bench_state.?.coll = later.Collator.init(alloc, .cldr, false, false) catch unreachable;
     bench_state.?.list_orig = alloc.dupe([]const u8, bench_state.?.list.items) catch unreachable;
 }
 

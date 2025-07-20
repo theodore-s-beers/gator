@@ -7,10 +7,7 @@
     .minimum_zig_version = "0.14.1",
 
     .dependencies = .{
-        .later = .{
-            .url = "https://github.com/theodore-s-beers/later/archive/refs/tags/v0.2.0.tar.gz",
-            .hash = "later-0.2.0-PrUAavWqEQCksZ_ZJE1YfRo84wYD7LuHgO7rVXqgSFnY",
-        },
+        .later = .{ .path = "../later" },
         .zbench = .{
             .url = "https://github.com/hendriknielaender/zBench/archive/refs/tags/v0.10.1.tar.gz",
             .hash = "zbench-0.10.0-YTdc714iAQDO4lTHMnIljYHPZ5v_sNTsw75vAmO1pyT-",
