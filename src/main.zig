@@ -36,13 +36,14 @@ pub fn main() !void {
     conformance(alloc, "test-data/CollationTest_CLDR_SHIFTED_SHORT.txt", &coll);
 
     //
-    // Mars benchmark
+    // Zauberberg benchmark
     //
 
     var bench = zbench.Benchmark.init(alloc, .{});
     defer bench.deinit();
 
-    try bench.add("Mars text sorting", benchMarsSorting, .{
+    try bench.add("Zauberberg sorting", benchZauberbergSorting, .{
+        .track_allocations = true,
         .hooks = .{
             .before_all = setupBenchState,
             .before_each = resetListOrder,
@@ -50,9 +51,9 @@ pub fn main() !void {
         },
     });
 
-    const stdout = std.io.getStdOut().writer();
-    try stdout.writeAll("\n");
-    try bench.run(stdout);
+    var file_writer = std.fs.File.stdout().writer(&.{});
+    try file_writer.interface.writeAll("\n");
+    try bench.run(&file_writer.interface);
 }
 
 fn conformance(alloc: std.mem.Allocator, path: []const u8, coll: *later.Collator) void {
@@ -124,7 +125,7 @@ fn utf8Encode(c: u21, out: []u8) u3 {
     return length;
 }
 
-fn benchMarsSorting(alloc: std.mem.Allocator) void {
+fn benchZauberbergSorting(alloc: std.mem.Allocator) void {
     _ = alloc;
 
     if (bench_state) |state| {
@@ -139,7 +140,7 @@ fn setupBenchState() void {
     bench_state.?.alloc = alloc;
 
     bench_state.?.text =
-        std.fs.cwd().readFileAlloc(alloc, "test-data/mars-de.txt", 128 * 1024) catch unreachable;
+        std.fs.cwd().readFileAlloc(alloc, "test-data/zauberberg.txt", 64 * 1024) catch unreachable;
     bench_state.?.list = std.ArrayList([]const u8).init(alloc);
 
     var it = std.mem.tokenizeAny(u8, bench_state.?.text, " \t\n\r");
