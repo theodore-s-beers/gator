@@ -68,10 +68,10 @@ fn conformance(alloc: std.mem.Allocator, path: []const u8, coll: *later.Collator
     defer alloc.free(test_data);
 
     var max_line = std.ArrayList(u8).initCapacity(alloc, 32) catch unreachable;
-    defer max_line.deinit();
+    defer max_line.deinit(alloc);
 
     var test_string = std.ArrayList(u8).initCapacity(alloc, 32) catch unreachable;
-    defer test_string.deinit();
+    defer test_string.deinit(alloc);
 
     var line_iter = std.mem.splitScalar(u8, test_data, '\n');
     var i: usize = 0;
@@ -141,10 +141,10 @@ fn setupBenchState() void {
 
     bench_state.?.text =
         std.fs.cwd().readFileAlloc(alloc, "test-data/zauberberg.txt", 64 * 1024) catch unreachable;
-    bench_state.?.list = std.ArrayList([]const u8).init(alloc);
+    bench_state.?.list = std.ArrayList([]const u8).empty;
 
     var it = std.mem.tokenizeAny(u8, bench_state.?.text, " \t\n\r");
-    while (it.next()) |token| bench_state.?.list.append(token) catch unreachable;
+    while (it.next()) |token| bench_state.?.list.append(alloc, token) catch unreachable;
 
     bench_state.?.coll = later.Collator.init(alloc, .cldr, false, false) catch unreachable;
     bench_state.?.list_orig = alloc.dupe([]const u8, bench_state.?.list.items) catch unreachable;
@@ -158,7 +158,7 @@ fn cleanupBenchState() void {
     if (bench_state) |state| {
         state.alloc.free(state.text);
         state.alloc.free(state.list_orig);
-        state.list.deinit();
+        state.list.deinit(state.alloc);
         state.coll.deinit();
 
         state.alloc.destroy(state);
